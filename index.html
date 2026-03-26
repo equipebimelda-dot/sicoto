@@ -531,7 +531,7 @@
       <div class="tomb-row">
         <div class="field">
           <label>Número de Tombamento</label>
-          <input type="text" id="tomb-num" placeholder="Digite o número..." oninput="onTombInput()" autocomplete="off" />
+          <input type="text" id="tomb-num" inputmode="numeric" pattern="[0-9]*" placeholder="Digite o número..." oninput="onTombInput()" autocomplete="off" />
         </div>
         <div class="field" id="desc-field">
           <label>Breve Descrição</label>
@@ -590,7 +590,7 @@
         </span>
         Manter propriedades
       </label>
-      <button class="btn btn-ghost" onclick="limparCampos(true)" style="margin-left:auto;">
+      <button class="btn btn-danger" onclick="limparCampos(true)" style="background:var(--danger);color:#fff;border-color:var(--danger);" style="margin-left:auto;">
         Limpar Campos
       </button>
     </div>
@@ -1085,6 +1085,19 @@
   // ── GERAR EXCEL ──
   function gerarExcel() {
     if (items.length === 0) { alert('Adicione pelo menos um item antes de gerar o Excel.'); return; }
+    const _unidade2     = document.getElementById('unidade').value.trim();
+    const _localizacao2 = document.getElementById('localizacao').value.trim();
+    const _policial2    = document.getElementById('policial').value.trim();
+    const _matricula2   = document.getElementById('matricula').value.trim();
+    const missing2 = [];
+    if (!_unidade2)     missing2.push('Unidade');
+    if (!_localizacao2) missing2.push('Localização');
+    if (!_policial2)    missing2.push('Policial Responsável');
+    if (!_matricula2)   missing2.push('Matrícula');
+    if (missing2.length > 0) {
+      alert('Preencha os campos obrigatórios antes de gerar o Excel:\n\n• ' + missing2.join('\n• '));
+      return;
+    }
 
     const h = getHeader();
     const wb = XLSX.utils.book_new();
