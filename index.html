@@ -673,9 +673,6 @@
     document.getElementById('data').value = `${yyyy}-${mm}-${dd}`;
   })();
 
-  // ── Carregar estado salvo ──
-  loadState();
-
   // ── LÓGICA DINÂMICA 1: mostrar campo de descrição ao digitar ──
   function onTombInput() {
     const val = document.getElementById('tomb-num').value.trim();
@@ -1184,14 +1181,13 @@
     XLSX.writeFile(wb, `SICOTO_${h.unidade.replace(/\s+/g,'_')}_${document.getElementById('data').value}.xlsx`);
     showToast('Excel gerado com sucesso!');
   }
-</script>
-<script>
-(function() {
+
+  // ── PERSISTÊNCIA localStorage ──
   const KEY_ITEMS = 'sicoto_items';
   const KEY_COUNTER = 'sicoto_counter';
   const KEY_HEADER = 'sicoto_header';
 
-  window.saveState = function() {
+  function saveState() {
     try {
       localStorage.setItem(KEY_ITEMS, JSON.stringify(items));
       localStorage.setItem(KEY_COUNTER, String(itemCounter));
@@ -1203,10 +1199,10 @@
         matricula: document.getElementById('matricula').value,
       };
       localStorage.setItem(KEY_HEADER, JSON.stringify(h));
-    } catch(e) {}
-  };
+    } catch(e) { console.warn('saveState error', e); }
+  }
 
-  window.loadState = function() {
+  function loadState() {
     try {
       const savedItems = localStorage.getItem(KEY_ITEMS);
       const savedCounter = localStorage.getItem(KEY_COUNTER);
@@ -1227,15 +1223,20 @@
       if (savedItems && JSON.parse(savedItems).length > 0) {
         showToast('Sessão restaurada — ' + JSON.parse(savedItems).length + ' item(s)');
       }
-    } catch(e) {}
-  };
+    } catch(e) { console.warn('loadState error', e); }
+  }
 
-  window.clearSavedState = function() {
+  function clearSavedState() {
     localStorage.removeItem(KEY_ITEMS);
     localStorage.removeItem(KEY_COUNTER);
     localStorage.removeItem(KEY_HEADER);
-  };
-})();
+  }
+
+  // Carregar estado ao iniciar
+  window.addEventListener('DOMContentLoaded', function() {
+    loadState();
+  });
+
 </script>
 </body>
 </html>
