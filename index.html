@@ -778,6 +778,26 @@
       </div>
     </div>
 
+    <!-- SITUAÇÃO E ESTADO -->
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="field">
+        <label>Situação</label>
+        <select id="item-situacao">
+          <option value="Em Uso" selected>Em Uso</option>
+          <option value="Inservível">Inservível</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado do Item</label>
+        <select id="item-estado">
+          <option value="Excelente">Excelente</option>
+          <option value="Bom" selected>Bom</option>
+          <option value="Ruim">Ruim</option>
+          <option value="Quebrado">Quebrado</option>
+        </select>
+      </div>
+    </div>
+
     <!-- ACTIONS -->
     <div class="actions-row">
       <button class="btn btn-primary" onclick="addItem()">
@@ -816,6 +836,8 @@
             <th>Tipo</th>
             <th>Tombamento / Identificação</th>
             <th>Descrição / Detalhes</th>
+            <th>Situação</th>
+            <th>Estado</th>
             <th>Ação</th>
           </tr>
         </thead>
@@ -940,6 +962,9 @@
       item = { tipo: 'TOMBADO', tombamento: num, descricao: desc };
     }
 
+    item.situacao = document.getElementById('item-situacao').value;
+    item.estado   = document.getElementById('item-estado').value;
+
     itemCounter++;
     item.seq = itemCounter;
     items.push(item);
@@ -955,7 +980,7 @@
     document.getElementById('item-count').textContent = items.length;
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr id="empty-row"><td colspan="5"><div class="empty-state"><div class="icon">📦</div><p>Nenhum item adicionado ainda.</p></div></td></tr>`;
+      tbody.innerHTML = `<tr id="empty-row"><td colspan="7"><div class="empty-state"><div class="icon">📦</div><p>Nenhum item adicionado ainda.</p></div></td></tr>`;
       return;
     }
 
@@ -983,7 +1008,9 @@
         <td>${it.seq}</td>
         <td>${badge}</td>
         <td>${ident}</td>
-        <td style="max-width:320px;">${detalhe}</td>
+        <td style="max-width:240px;">${detalhe}</td>
+        <td><span style="font-size:12px;font-weight:600;color:${it.situacao==='Inservível'?'var(--danger)':'var(--green)'};">${it.situacao||'—'}</span></td>
+        <td><span style="font-size:12px;font-weight:600;color:var(--text-mid);">${it.estado||'—'}</span></td>
         <td><button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="removeItem(${idx})">Remover</button></td>
       </tr>`;
     }).join('');
@@ -1008,6 +1035,8 @@
       ['st-marca','st-modelo','st-tamanho','st-cor','st-serie','st-desc'].forEach(id => {
         document.getElementById(id).value = '';
       });
+      document.getElementById('item-situacao').value = 'Em Uso';
+      document.getElementById('item-estado').value = 'Bom';
     } else {
       if (!semTombMode) {
         // Com tombamento: limpa apenas o número de tombamento, mantém descrição
@@ -1159,17 +1188,19 @@
       const bodyTomb = tombados.map((it, i) => [
         String(i + 1),
         it.tombamento,
-        it.descricao || '—'
+        it.descricao || '—',
+        it.situacao  || '—',
+        it.estado    || '—'
       ]);
 
       doc.autoTable({
         startY: y,
-        head: [['#', 'Nº Tombamento', 'Descrição']],
+        head: [['#', 'Nº Tombamento', 'Descrição', 'Situação', 'Estado']],
         body: bodyTomb,
         headStyles: { fillColor: [90, 100, 45], textColor: [255,255,255], fontStyle: 'bold', fontSize: 8.5 },
         bodyStyles: { fontSize: 8, textColor: [30,30,30] },
         alternateRowStyles: { fillColor: [240,242,230] },
-        columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 50 }, 2: { cellWidth: 'auto' } },
+        columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 40 }, 2: { cellWidth: 'auto' }, 3: { cellWidth: 22 }, 4: { cellWidth: 22 } },
         margin: { left: 10, right: 10 },
         didDrawPage: (data) => { y = data.cursor.y; }
       });
@@ -1200,17 +1231,17 @@
           it.cor      ? `Cor: ${it.cor}` : '',
           it.serie    ? `NS: ${it.serie}` : ''
         ].filter(Boolean).join('\n');
-        return [String(i + 1), 'S/T', detalhes || '—'];
+        return [String(i + 1), 'S/T', detalhes || '—', it.situacao || '—', it.estado || '—'];
       });
 
       doc.autoTable({
         startY: y,
-        head: [['#', 'Ident.', 'Detalhes do Equipamento']],
+        head: [['#', 'Ident.', 'Detalhes do Equipamento', 'Situação', 'Estado']],
         body: bodySem,
         headStyles: { fillColor: AMBER, textColor: [255,255,255], fontStyle: 'bold', fontSize: 8.5 },
         bodyStyles: { fontSize: 8, textColor: [30,30,30] },
         alternateRowStyles: { fillColor: AMBER_PAL },
-        columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 18 }, 2: { cellWidth: 'auto' } },
+        columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 14 }, 2: { cellWidth: 'auto' }, 3: { cellWidth: 22 }, 4: { cellWidth: 22 } },
         margin: { left: 10, right: 10 },
       });
     }
@@ -1283,7 +1314,7 @@
       doc.text(`SICOTO – Sistema de Coleta de Tombamento  |  PP Daniel e Helen  |  Pág. ${p} de ${pages}`, W/2, 292, { align: 'center' });
     }
 
-    doc.save(`SICOTO_${h.unidade.replace(/\s+/g,'_')}_${document.getElementById('data').value}.pdf`);
+    doc.save(`SICOTO_${h.unidade.replace(/\s+/g,'_')}_${h.localizacao.replace(/\s+/g,'_')}_${document.getElementById('data').value}.pdf`);
     showToast('PDF gerado com sucesso!');
   }
 
@@ -1350,26 +1381,26 @@
             it.cor      ? `Cor: ${it.cor}` : '',
             it.serie    ? `NS: ${it.serie}` : ''
           ].filter(Boolean).join(' | ');
-      return [it.seq, it.tipo === 'TOMBADO' ? 'TOMBADO' : 'SEM TOMB.', ident, det];
+      return [it.seq, it.tipo === 'TOMBADO' ? 'TOMBADO' : 'SEM TOMB.', ident, det, it.situacao || '', it.estado || ''];
     });
     const wsResumo = buildSheet(
       'RELATÓRIO GERAL – TODOS OS ITENS',
       `Total: ${items.length} itens  |  Tombados: ${tombados.length}  |  Sem tombamento: ${semTombs.length}`,
-      ['#', 'Tipo', 'Tombamento / Ident.', 'Descrição / Detalhes'],
+      ['#', 'Tipo', 'Tombamento / Ident.', 'Descrição / Detalhes', 'Situação', 'Estado'],
       resumoLinhas,
-      [6, 16, 22, 55]
+      [6, 16, 22, 50, 14, 14]
     );
     XLSX.utils.book_append_sheet(wb, wsResumo, 'Geral');
 
     // ── ABA 2: ITENS TOMBADOS ──
     if (tombados.length > 0) {
-      const linhasTomb = tombados.map((it, i) => [i+1, it.tombamento, it.descricao || '']);
+      const linhasTomb = tombados.map((it, i) => [i+1, it.tombamento, it.descricao || '', it.situacao || '', it.estado || '']);
       const wsTomb = buildSheet(
         'SEÇÃO 1 — ITENS COM TOMBAMENTO',
         `Total: ${tombados.length} item(s) tombado(s)`,
-        ['#', 'Nº Tombamento', 'Descrição'],
+        ['#', 'Nº Tombamento', 'Descrição', 'Situação', 'Estado'],
         linhasTomb,
-        [6, 28, 60]
+        [6, 28, 50, 14, 14]
       );
       XLSX.utils.book_append_sheet(wb, wsTomb, 'Tombados');
     }
@@ -1384,19 +1415,21 @@
         it.tamanho  || '',
         it.cor      || '',
         it.serie    || '',
-        it.descricao|| ''
+        it.descricao|| '',
+        it.situacao || '',
+        it.estado   || ''
       ]);
       const wsSem = buildSheet(
         'SEÇÃO 2 — EQUIPAMENTOS SEM TOMBAMENTO',
         `Total: ${semTombs.length} item(s) sem tombamento`,
-        ['#', 'Ident.', 'Marca', 'Modelo', 'Tamanho', 'Cor', 'Nº de Série', 'Descrição'],
+        ['#', 'Ident.', 'Marca', 'Modelo', 'Tamanho', 'Cor', 'Nº de Série', 'Descrição', 'Situação', 'Estado'],
         linhasSem,
-        [6, 10, 18, 18, 14, 12, 20, 35]
+        [6, 10, 18, 18, 14, 12, 20, 30, 14, 14]
       );
       XLSX.utils.book_append_sheet(wb, wsSem, 'Sem Tombamento');
     }
 
-    XLSX.writeFile(wb, `SICOTO_${h.unidade.replace(/\s+/g,'_')}_${document.getElementById('data').value}.xlsx`);
+    XLSX.writeFile(wb, `SICOTO_${h.unidade.replace(/\s+/g,'_')}_${h.localizacao.replace(/\s+/g,'_')}_${document.getElementById('data').value}.xlsx`);
     showToast('Excel gerado com sucesso!');
   }
 
